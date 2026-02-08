@@ -230,7 +230,7 @@ if [[ "$STATUS" == "success" ]]; then
 
   # Create draft PR
   PR_URL=$(gh pr create \
-    --title "$(head -1 "$TASK_FILE" | sed 's/^#\+ //')" \
+    --title "$(head -1 "$LOG_DIR/task.md" | sed 's/^#\+ //')" \
     --body "$(cat <<EOF
 ## 🏭 Factory Run: $RUN_ID
 
@@ -239,7 +239,7 @@ if [[ "$STATUS" == "success" ]]; then
 **Status:** ✅ All checks passed
 
 ### Task
-$(cat "$TASK_FILE")
+$(cat "$LOG_DIR/task.md")
 
 ### Checks
 $CHECKS
