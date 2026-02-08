@@ -1,0 +1,38 @@
+name: Factory Eval
+
+on:
+  pull_request:
+    branches: [master, main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  evaluate:
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for diff metrics
+
+      - name: Run Factory Eval
+        run: |
+          chmod +x factory/hooks/ci-eval.sh
+          ./factory/hooks/ci-eval.sh
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_CC_PROJECT: Factory
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BRANCH: ${{ github.head_ref }}
+          COMMIT_SHA: ${{ github.sha }}
+
+      - name: Post Braintrust Eval Comment
+        if: always()
+        uses: braintrustdata/eval-action@v1
+        with:
+          api_key: ${{ secrets.BRAINTRUST_API_KEY }}
+          runtime: node
+        continue-on-error: true  # Don't fail PR on eval issues

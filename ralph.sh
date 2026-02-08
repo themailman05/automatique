@@ -272,4 +272,18 @@ EOF
   echo "  Check logs: $LOG_DIR"
 fi
 
+# ── Post-run hooks ────────────────────────────────────────────────────────────
+HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)/hooks"
+
+# Eval hook — log scores to Braintrust
+if [[ -x "$HOOKS_DIR/post-run-eval.sh" && -n "${BRAINTRUST_API_KEY:-}" ]]; then
+  echo "  📊 Running post-run eval..."
+  "$HOOKS_DIR/post-run-eval.sh" "$LOG_DIR" || echo "  ⚠️  Eval hook failed (non-fatal)"
+fi
+
+# Notify hook — send results to Telegram/webhook
+if [[ -x "$HOOKS_DIR/notify.sh" ]]; then
+  "$HOOKS_DIR/notify.sh" "$LOG_DIR" "${NOTIFY_CHAT:-}" 2>/dev/null || true
+fi
+
 echo "$STATUS"

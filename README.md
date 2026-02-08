@@ -209,6 +209,53 @@ With the trace plugin configured, every Claude Code session appears in Braintrus
 
 View at: https://braintrust.dev → Project "Factory" → Logs
 
+## Hooks
+
+The factory runs post-completion hooks automatically. All hooks are in `hooks/`.
+
+### `post-run-eval.sh` — Braintrust Auto-Eval
+
+Runs after every Ralph loop completion. Logs a structured experiment to Braintrust with scores:
+
+| Score | What it measures |
+|-------|-----------------|
+| `build_passes` | Binary — did all checks pass? |
+| `efficiency` | Fewer iterations = higher score (1-shot = 1.0) |
+| `diff_precision` | Smaller diff = higher score (surgical changes) |
+
+View experiments at: Braintrust → Factory → Experiments
+
+### `ci-eval.sh` — CI/CD Integration
+
+Runs in GitHub Actions on every PR. Automatically:
+1. Runs build/test/lint checks
+2. Computes diff metrics (files changed, insertions, deletions)
+3. Creates a Braintrust experiment (`ci-pr{N}-{sha}`)
+4. Posts results to GitHub Actions job summary
+
+Add to your repo's workflows (see `.github/workflows/factory-eval.yml`).
+
+### `notify.sh` — Telegram / Webhook Notifications
+
+Posts run results to Telegram or a generic webhook. Set `RALPH_NOTIFY_CHAT` and `TELEGRAM_BOT_TOKEN` for Telegram, or `NOTIFY_WEBHOOK` for a generic POST endpoint.
+
+### Adding Custom Hooks
+
+Drop any executable script in `hooks/` following the naming convention:
+- `post-run-*.sh` — runs after every Ralph loop completion
+- `ci-*.sh` — runs in CI/CD pipelines
+- `pre-run-*.sh` — runs before the loop starts (future)
+
+### CI/CD Setup (GitHub Actions)
+
+Copy `.github/workflows/factory-eval.yml` to your repo, then add the secret:
+
+```bash
+gh secret set BRAINTRUST_API_KEY --body "sk-..."
+```
+
+Every PR will get auto-evaluated with scores posted to Braintrust and the job summary.
+
 ## Philosophy
 
 ### Ralph Wiggum Loop
