@@ -31,6 +31,7 @@ MODEL="${RALPH_MODEL:-sonnet}"
 PROJECT="${BRAINTRUST_CC_PROJECT:-factory}"
 NOTIFY_CHAT="${RALPH_NOTIFY_CHAT:-}"
 CHECKS="${RALPH_CHECKS:-}"
+CHECK_SCRIPT=""
 BRANCH=""
 TASK_FILE=""
 RUN_ID="$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 3)"
@@ -45,6 +46,7 @@ while [[ $# -gt 0 ]]; do
     --model)    MODEL="$2"; shift 2 ;;
     --repo)     REPO="$2"; shift 2 ;;
     --checks)   CHECKS="$2"; shift 2 ;;
+    --check-script) CHECK_SCRIPT="$2"; shift 2 ;;
     --help|-h)
       head -20 "$0" | grep '^#' | sed 's/^# \?//'
       exit 0 ;;
@@ -113,6 +115,15 @@ fi
 run_checks() {
   local check_log="$LOG_DIR/checks-iter-$1.log"
   local failed=0
+
+  # If a check script is provided, run it directly
+  if [[ -n "$CHECK_SCRIPT" ]]; then
+    echo "  ▶ Running check script: $CHECK_SCRIPT"
+    if ! bash "$CHECK_SCRIPT" 2>&1 | tee -a "$check_log"; then
+      failed=1
+    fi
+    return $failed
+  fi
 
   IFS=':' read -ra CHECK_LIST <<< "$CHECKS"
   for check in "${CHECK_LIST[@]}"; do
