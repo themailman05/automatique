@@ -192,19 +192,16 @@ $FEEDBACK
   # Write prompt to log
   echo "$PROMPT" > "$LOG_DIR/prompt-iter-$ITER.md"
 
-  # Run Claude Code
+  # Run Claude Code — output captured by Braintrust traces, not stdout
   echo "  🤖 Running Claude Code (model: $MODEL)..."
-  CLAUDE_OUTPUT="$LOG_DIR/claude-iter-$ITER.log"
-
-  claude \
+  unbuffer claude \
     --model "$MODEL" \
-    --print \
+    -p \
     --dangerously-skip-permissions \
     --max-budget-usd "$MAX_COST" \
-    --settings "{\"env\":{\"TRACE_TO_BRAINTRUST\":\"true\",\"BRAINTRUST_CC_PROJECT\":\"$PROJECT\",\"BRAINTRUST_API_KEY\":\"${BRAINTRUST_API_KEY:-}\"}}" \
     --append-system-prompt "You are a factory worker in a Ralph Wiggum loop. Your job is to make the code changes described in the task and ensure all checks pass. Be surgical and precise. Do not over-engineer." \
     "$PROMPT" \
-    2>&1 | tee "$CLAUDE_OUTPUT"
+    > /dev/null 2>&1 || true
 
   # Run checks
   echo ""
