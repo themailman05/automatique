@@ -31,7 +31,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
 MAX_ITERS="${RALPH_MAX_ITERS:-8}"
-MAX_COST="${RALPH_MAX_COST_USD:-5.00}"
+MAX_COST="${RALPH_MAX_COST_USD:-50.00}"
 REPO="${RALPH_REPO:-$HOME/src/flowstate}"
 MODEL="${RALPH_MODEL:-claude-opus-4-6}"
 PROJECT="${BRAINTRUST_CC_PROJECT:-factory}"
