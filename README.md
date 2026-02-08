@@ -213,17 +213,41 @@ View at: https://braintrust.dev → Project "Factory" → Logs
 
 The factory runs post-completion hooks automatically. All hooks are in `hooks/`.
 
-### `post-run-eval.sh` — Braintrust Auto-Eval
+### `post-run-eval.sh` — Braintrust Auto-Eval + Dataset
 
-Runs after every Ralph loop completion. Logs a structured experiment to Braintrust with scores:
+Runs after every Ralph loop completion. Does three things:
+
+1. **Logs to project traces** — appears alongside Claude Code session traces in the Logs view
+2. **Creates an experiment** — structured scores for comparing runs over time
+3. **Appends to dataset** — builds a growing library of task→outcome pairs
+
+Scores:
 
 | Score | What it measures |
 |-------|-----------------|
 | `build_passes` | Binary — did all checks pass? |
-| `efficiency` | Fewer iterations = higher score (1-shot = 1.0) |
-| `diff_precision` | Smaller diff = higher score (surgical changes) |
+| `efficiency` | Fewer iterations = higher (1-shot = 1.0) |
+| `diff_precision` | Smaller diff = higher (surgical changes) |
+| `integrity` | Detects metric gaming (suppressed errors, deleted tests) |
 
-View experiments at: Braintrust → Factory → Experiments
+The dataset (`factory-runs`) accumulates every task with its actual scores and expected scores. Use it to:
+- Track factory quality over time
+- Regression test after changing prompts, models, or checks
+- Compare model performance (sonnet vs opus on same tasks)
+
+View: Braintrust → Factory → Datasets → `factory-runs`
+
+### `regression-eval.sh` — Replay Dataset
+
+Re-runs historical tasks through the factory and compares results:
+
+```bash
+./hooks/regression-eval.sh              # All tasks
+./hooks/regression-eval.sh --limit 5    # First 5
+./hooks/regression-eval.sh --task-id x  # Specific task
+```
+
+Creates a Braintrust experiment linked to the dataset, so you can see score diffs in the UI.
 
 ### `ci-eval.sh` — CI/CD Integration
 
