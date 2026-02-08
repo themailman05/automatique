@@ -1,0 +1,7 @@
+# Run artifacts
+runs/
+tasks/
+
+# Environment
+.env
+*.local
