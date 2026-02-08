@@ -1,4 +1,4 @@
-# 🏭 Factory
+# 🏭 L'Automatique
 
 A [Ralph Wiggum Loop](https://beuke.org/ralph-wiggum-loop/) harness for autonomous software development. Runs [Claude Code](https://code.claude.com/) in a retry loop against external checks until all checks pass or safety limits are hit. All sessions traced to [Braintrust](https://braintrust.dev) for observability.
 
