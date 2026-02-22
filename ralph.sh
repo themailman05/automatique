@@ -385,30 +385,47 @@ $FEEDBACK
     echo ""
     echo "  ❌ Local checks failed. Retrying..."
     notify "❌ Iteration $ITER: Local checks failed, retrying..."
+    # Run Braintrust eval even on failure
+    EVAL_MD=""
+    if [[ -f "$FACTORY_DIR/hooks/iter_eval.py" ]]; then
+      echo "  📊 Running Braintrust eval..."
+      EVAL_JSON=$("$FACTORY_DIR/.venv/bin/python3" "$FACTORY_DIR/hooks/iter_eval.py" \
+        "$LOG_DIR" "$ITER" "$REPO" "$BRANCH" 2>/dev/null || echo '{"markdown":"eval unavailable"}')
+      EVAL_MD=$(echo "$EVAL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('markdown',''))" 2>/dev/null || echo "")
+    fi
+
     trello_comment "🔄 **Ralph Loop $ITER/$MAX_ITERS — RETRY**
 
 **Status:** ❌ Local checks failed
 
-**Check output (last 50 lines):**
+**Check output (last 30 lines):**
 \`\`\`
-$(echo "$FEEDBACK" | tail -50)
+$(echo "$FEEDBACK" | tail -30)
 \`\`\`
 
-**Self-assessment:**
-- Deliverables: incomplete — checks not passing
-- Anti-pattern adherence: ⏳ (will verify on next pass)"
+**Eval:**
+$EVAL_MD"
     STATUS="retry"
     continue
   fi
 
   echo "  ✅ Local checks passed"
+
+  # Run Braintrust eval on success
+  EVAL_MD=""
+  if [[ -f "$FACTORY_DIR/hooks/iter_eval.py" ]]; then
+    echo "  📊 Running Braintrust eval..."
+    EVAL_JSON=$("$FACTORY_DIR/.venv/bin/python3" "$FACTORY_DIR/hooks/iter_eval.py" \
+      "$LOG_DIR" "$ITER" "$REPO" "$BRANCH" 2>/dev/null || echo '{"markdown":"eval unavailable"}')
+    EVAL_MD=$(echo "$EVAL_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('markdown',''))" 2>/dev/null || echo "")
+  fi
+
   trello_comment "✅ **Ralph Loop $ITER/$MAX_ITERS — CHECKS PASSED**
 
 **Status:** Local checks passed, pushing to CI
 
-**Self-assessment:**
-- Deliverables: code changes committed, local checks green
-- Anti-pattern adherence: no tests deleted, no warnings suppressed, no hardcoded values"
+**Eval:**
+$EVAL_MD"
 
   # ── Step 4: Push + PR ──
   echo ""
