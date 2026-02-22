@@ -1,0 +1,16 @@
+[
+  {
+    "name": "aec-bypass-neural",
+    "task": "/Users/liam/.openclaw/workspace/factory/tasks/aec-algo-only-bypass-neural.md",
+    "repo": "/Users/liam/src/flowstate",
+    "trello": "699b5ad7f94a630096210039",
+    "pid": 95989
+  },
+  {
+    "name": "aec-benchmark-pipeline",
+    "task": "/Users/liam/.openclaw/workspace/factory/tasks/aec-hardware-benchmark-pipeline.md",
+    "repo": "/Users/liam/src/flowstate",
+    "trello": "699b8d1ca904a4b31a412e86",
+    "pid": 95990
+  }
+]
