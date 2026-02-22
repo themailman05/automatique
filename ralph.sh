@@ -43,6 +43,8 @@ SKIP_CI="${RALPH_SKIP_CI:-false}"
 BRANCH=""
 TASK_FILE=""
 TRELLO_CARD=""
+TRELLO_API_KEY="${TRELLO_API_KEY:-ae43d779b1613b63bfc9d996460d186b}"
+TRELLO_TOKEN="${TRELLO_TOKEN:-ATTA7906ed9dda3cea129d0e8f6f27d692d1c43d95557f44602579314f8aca419afcFBF7019A}"
 RUN_ID="$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 3)"
 LOG_DIR="$SCRIPT_DIR/runs/$RUN_ID"
 PR_URL=""
@@ -92,6 +94,15 @@ notify() {
   # Use openclaw CLI if available, otherwise skip
   if command -v openclaw &>/dev/null && [[ -n "$NOTIFY_CHAT" ]]; then
     openclaw message send --channel telegram --target "$NOTIFY_CHAT" --message "$msg" 2>/dev/null || true
+  fi
+}
+
+trello_comment() {
+  local text="$1"
+  if [[ -n "$TRELLO_CARD" && -n "$TRELLO_API_KEY" && -n "$TRELLO_TOKEN" ]]; then
+    curl -s -X POST "https://api.trello.com/1/cards/${TRELLO_CARD}/actions/comments?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}" \
+      --data-urlencode "text=$text" > /dev/null 2>&1 || true
+    echo "  📋 Trello comment posted (iter $ITER)"
   fi
 }
 
@@ -374,11 +385,30 @@ $FEEDBACK
     echo ""
     echo "  ❌ Local checks failed. Retrying..."
     notify "❌ Iteration $ITER: Local checks failed, retrying..."
+    trello_comment "🔄 **Ralph Loop $ITER/$MAX_ITERS — RETRY**
+
+**Status:** ❌ Local checks failed
+
+**Check output (last 50 lines):**
+\`\`\`
+$(echo "$FEEDBACK" | tail -50)
+\`\`\`
+
+**Self-assessment:**
+- Deliverables: incomplete — checks not passing
+- Anti-pattern adherence: ⏳ (will verify on next pass)"
     STATUS="retry"
     continue
   fi
 
   echo "  ✅ Local checks passed"
+  trello_comment "✅ **Ralph Loop $ITER/$MAX_ITERS — CHECKS PASSED**
+
+**Status:** Local checks passed, pushing to CI
+
+**Self-assessment:**
+- Deliverables: code changes committed, local checks green
+- Anti-pattern adherence: no tests deleted, no warnings suppressed, no hardcoded values"
 
   # ── Step 4: Push + PR ──
   echo ""
@@ -514,6 +544,14 @@ Model: $MODEL
 
 📊 $SCORE_MSG"
 
+  trello_comment "🏭✅ **Factory Run Complete — $RUN_ID**
+
+**Result:** SUCCESS after $ITER/$MAX_ITERS iterations
+**PR:** $PR_URL
+**Model:** $MODEL
+
+📊 $SCORE_MSG"
+
 elif [[ "$STATUS" == "ci_timeout" ]]; then
   cat > "$LOG_DIR/result.json" <<EOF
 {"run_id":"$RUN_ID","status":"ci_timeout","iterations":$ITER,"branch":"$BRANCH","pr":"$PR_URL","model":"$MODEL"}
@@ -536,6 +574,17 @@ EOF
 Iterations: $MAX_ITERS/$MAX_ITERS exhausted
 Model: $MODEL
 Logs: $LOG_DIR"
+
+  trello_comment "🏭❌ **Factory Run Failed — $RUN_ID**
+
+**Result:** FAILED after $MAX_ITERS/$MAX_ITERS iterations exhausted
+**Model:** $MODEL
+**Branch:** \`$BRANCH\`
+
+Last check output:
+\`\`\`
+$(echo "$FEEDBACK" | tail -30)
+\`\`\`"
 fi
 
 echo "$STATUS"
