@@ -398,6 +398,21 @@ $FEEDBACK
   wait "$CLAUDE_PID" 2>/dev/null || true
   echo "  ✅ Claude Code finished (${CLAUDE_ELAPSED}s)"
 
+  # ── Step 2.5: Check if Claude Code made any changes ──
+  CHANGES="$(cd "$REPO" && git log origin/master..HEAD --oneline 2>/dev/null)"
+  UNCOMMITTED="$(cd "$REPO" && git diff HEAD --stat 2>/dev/null)"
+  if [[ -z "$CHANGES" && -z "$UNCOMMITTED" ]]; then
+    echo "  ⚠️  No changes detected — Claude Code made no commits or modifications"
+    if [[ $ITER -eq 1 ]]; then
+      echo "  ℹ️  Task may already be complete on this branch"
+      notify "⚠️ Iteration $ITER: No changes made — task may already be done"
+      STATUS="done"
+      break
+    fi
+  else
+    echo "  📝 Changes since master: $(echo "$CHANGES" | wc -l | tr -d ' ') commit(s)"
+  fi
+
   # ── Step 3: Local checks (fast feedback) ──
   echo ""
   echo "  🔍 Running local checks..."
