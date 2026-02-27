@@ -176,8 +176,11 @@ run_local_checks() {
   local failed=0
 
   if [[ -n "$CHECK_SCRIPT" ]]; then
-    echo "  ▶ Running check script: $CHECK_SCRIPT"
-    if ! bash "$CHECK_SCRIPT" 2>&1 | tee -a "$check_log"; then
+    # Resolve relative paths against factory dir
+    local resolved_script="$CHECK_SCRIPT"
+    [[ "$resolved_script" != /* ]] && resolved_script="$SCRIPT_DIR/$resolved_script"
+    echo "  ▶ Running check script: $resolved_script"
+    if ! bash "$resolved_script" 2>&1 | tee -a "$check_log"; then
       failed=1
     fi
     return $failed
