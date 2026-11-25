@@ -18,9 +18,10 @@
 # Environment:
 #   BRAINTRUST_API_KEY     — Required for tracing
 #   RALPH_MAX_ITERS        — Max iterations (default: 8)
-#   RALPH_MAX_COST_USD     — Max spend per run (default: 5.00)
+#   RALPH_MAX_COST_USD     — Max spend per run (default: 50.00)
 #   RALPH_REPO             — Repo path (default: ~/src/flowstate)
-#   RALPH_MODEL            — Claude model (default: claude-opus-4-6)
+#   RALPH_MODEL            — Claude model (default: claude-opus-5-5)
+#   RALPH_EFFORT           — Claude Code effort: low|medium|high|xhigh|max (default: high)
 #   RALPH_NOTIFY_CHAT      — Telegram chat ID for notifications
 #   RALPH_CI_TIMEOUT       — Minutes to wait for CI (default: 30)
 #   RALPH_SKIP_CI          — Set to "true" to skip CI wait (local checks only)
@@ -33,7 +34,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MAX_ITERS="${RALPH_MAX_ITERS:-8}"
 MAX_COST="${RALPH_MAX_COST_USD:-50.00}"
 REPO="${RALPH_REPO:-$HOME/src/flowstate}"
-MODEL="${RALPH_MODEL:-claude-opus-4-6}"
+MODEL="${RALPH_MODEL:-claude-opus-5-5}"
+EFFORT="${RALPH_EFFORT:-high}"
 PROJECT="${BRAINTRUST_CC_PROJECT:-factory}"
 NOTIFY_CHAT="${RALPH_NOTIFY_CHAT:-906083113}"
 CHECKS="${RALPH_CHECKS:-}"
@@ -56,6 +58,7 @@ while [[ $# -gt 0 ]]; do
     --max-iters)    MAX_ITERS="$2"; shift 2 ;;
     --max-cost)     MAX_COST="$2"; shift 2 ;;
     --model)        MODEL="$2"; shift 2 ;;
+    --effort)       EFFORT="$2"; shift 2 ;;
     --repo)         REPO="$2"; shift 2 ;;
     --checks)       CHECKS="$2"; shift 2 ;;
     --check-script) CHECK_SCRIPT="$2"; shift 2 ;;
@@ -368,10 +371,11 @@ $FEEDBACK
   echo "$PROMPT" > "$LOG_DIR/prompt-iter-$ITER.md"
 
   # ── Step 2: Run Claude Code ──
-  echo "  🤖 Running Claude Code (model: $MODEL)..."
+  echo "  🤖 Running Claude Code (model: $MODEL, effort: $EFFORT)..."
   # Run claude in background with timeout — unbuffer can hang if PTY doesn't close
   claude \
     --model "$MODEL" \
+    --effort "$EFFORT" \
     -p \
     --dangerously-skip-permissions \
     --max-budget-usd "$MAX_COST" \

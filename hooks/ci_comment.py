@@ -148,7 +148,7 @@ client = wrap_openai(OpenAI(
 ))
 
 response = client.chat.completions.create(
-    model="claude-sonnet-4-20250514",
+    model=os.environ.get("FACTORY_JUDGE_MODEL", "claude-sonnet-5-5"),
     messages=[
         {"role": "system", "content": "You are a code review scorer. Be precise and honest."},
         {"role": "user", "content": scoring_prompt},
@@ -222,7 +222,7 @@ comment = f"""## 🏭 L'Automatique — PR Evaluation
 🔗 [CI Run]({RUN_URL})
 
 ---
-<sub>Scored by L'Automatique CI eval • Model: claude-sonnet-4-20250514</sub>
+<sub>Scored by L'Automatique CI eval • Model: {os.environ.get("FACTORY_JUDGE_MODEL", "claude-sonnet-5-5")}</sub>
 """
 
 # Post comment via gh CLI

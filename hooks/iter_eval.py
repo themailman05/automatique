@@ -24,10 +24,9 @@ BRANCH = sys.argv[4]
 
 PROJECT = os.environ.get("BRAINTRUST_CC_PROJECT", "Factory")
 
-MODELS = [
-    "claude-sonnet-4-20250514",
-    "gpt-4o-2024-11-20",
-]
+MODELS = [m.strip() for m in os.environ.get(
+    "FACTORY_EVAL_MODELS", "claude-sonnet-5-5,claude-opus-5-5"
+).split(",") if m.strip()]
 
 # ── System prompt — reviewer context ─────────────────────────────────────────
 SYSTEM_PROMPT = """You are a senior code reviewer for CloudLoop (codename Flowstate), a collaborative loop station app built with Flutter (Dart frontend) and native C++ audio plugins.
