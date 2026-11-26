@@ -62,7 +62,8 @@ export BRAINTRUST_CC_PROJECT="Factory"
 export RALPH_REPO="$HOME/src/your-repo"
 export RALPH_MAX_ITERS=8
 export RALPH_MAX_COST_USD=5.00
-export RALPH_MODEL=sonnet
+export RALPH_MODEL=claude-opus-5-5   # or claude-sonnet-5-5 for cheaper runs
+export RALPH_EFFORT=high             # low|medium|high|xhigh|max
 ```
 
 ### 3. Install Braintrust Plugin for Claude Code
@@ -180,7 +181,7 @@ Combine with colons: `--checks "flutter_analyze:flutter_build_ios:flutter_test"`
 | Limit | Default | Flag |
 |-------|---------|------|
 | Max iterations | 8 | `--max-iters N` / `RALPH_MAX_ITERS` |
-| Max cost per run | $5.00 | `--max-cost N` / `RALPH_MAX_COST_USD` |
+| Max cost per run | $50.00 | `--max-cost N` / `RALPH_MAX_COST_USD` |
 
 If the loop hits either limit without passing, it stops and reports failure. Check the logs in `runs/<run-id>/` for diagnostics.
 
@@ -233,7 +234,7 @@ Scores:
 The dataset (`factory-runs`) accumulates every task with its actual scores and expected scores. Use it to:
 - Track factory quality over time
 - Regression test after changing prompts, models, or checks
-- Compare model performance (sonnet vs opus on same tasks)
+- Compare model performance (claude-sonnet-5-5 vs claude-opus-5-5, and effort levels, on the same tasks)
 
 View: Braintrust → Factory → Datasets → `factory-runs`
 

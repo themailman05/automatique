@@ -165,7 +165,7 @@ client = wrap_openai(OpenAI(
 ))
 
 response = client.chat.completions.create(
-    model="claude-sonnet-4-20250514",
+    model=os.environ.get("FACTORY_JUDGE_MODEL", "claude-sonnet-5-5"),
     messages=[
         {"role": "system", "content": "You are a code review scorer. Be precise and honest. Score based on evidence in the diff and CI results, not assumptions."},
         {"role": "user", "content": scoring_prompt},
@@ -220,7 +220,7 @@ logger.log(
     metadata={
         "run_id": run_id,
         "scorer": "llm-pr-scorer",
-        "model": "claude-sonnet-4-20250514",
+        "model": os.environ.get("FACTORY_JUDGE_MODEL", "claude-sonnet-5-5"),
         "iterations": iters,
     },
 )
